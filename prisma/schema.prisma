@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 사용자 모델
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  beautyProfile BeautyProfile?
+  measurements  Measurements?
+  preferences   Preferences?
+  analyses      BeautyAnalysis[]
+  recommendations Recommendation[]
+}
+
+// 뷰티 프로필
+model BeautyProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  skinType      String?   // 건성, 지성, 복합성 등
+  skinConcerns  String[]  // 주름, 모공, 트러블 등
+  skinTone      String?   // 피부톤
+  faceShape     String?   // 얼굴형
+  colorPalette  String[]  // 퍼스널 컬러 팔레트
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 체형 측정
+model Measurements {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  height        Float?
+  weight        Float?
+  bodyType      String?   // 체형 분류
+  proportions   Json?     // 신체 비율 데이터
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 사용자 선호도
+model Preferences {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  style         String[]  // 선호하는 스타일
+  budget        Json?     // 예산 범위
+  brands        String[]  // 선호 브랜드
+  allergies     String[]  // 알레르기 정보
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 뷰티 분석 결과
+model BeautyAnalysis {
+  id            String    @id @default(cuid())
+  userId        String
+  imageUrl      String
+  analysisType  String    // 얼굴형, 피부톤, 피부 상태 등
+  results       Json      // 분석 결과 데이터
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 추천 결과
+model Recommendation {
+  id            String    @id @default(cuid())
+  userId        String
+  category      String    // 스킨케어, 메이크업, 패션 등
+  products      Json[]    // 추천 제품 목록
+  reason        String?   // 추천 이유
+  createdAt     DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
